@@ -6,7 +6,6 @@ public enum TipoEvento {
     CULTURA,
     DEPORTE,
     MODA,
-    EDUACION,
+    EDUCACION,
     DIVERSION
-
 }
