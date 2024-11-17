@@ -9,29 +9,40 @@ import org.springframework.context.annotation.Configuration;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+
 @Configuration
 public class FirebaseConfig {
 
     @Bean
     public FirebaseApp intializeFirebase() throws IOException {
-        // Obtener la ruta del archivo JSON desde la variable de entorno
-        String credentialsPath = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
-
-        // Verificar si la variable de entorno está configurada correctamente
-        if (credentialsPath == null || credentialsPath.isEmpty()) {
-            throw new IOException("La variable de entorno GOOGLE_APPLICATION_CREDENTIALS no está configurada.");
+        // Obtener la URL del archivo JSON desde la variable de entorno
+        String credentialsUrl = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
+        if (credentialsUrl == null) {
+            throw new IllegalStateException("FIREBASE_CREDENTIALS_URL is not set");
         }
 
-        // Cargar el archivo JSON utilizando la ruta de la variable de entorno
-        FileInputStream serviceAccount = new FileInputStream(credentialsPath);
+        // Descargar el archivo JSON desde la URL
+        URL url = new URL(credentialsUrl);
+        ReadableByteChannel byteChannel = Channels.newChannel(url.openStream());
 
-        // Configuración de Firebase
+        // Convertir el byteChannel a InputStream
+        InputStream serviceAccount = Channels.newInputStream(byteChannel);
+
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .setStorageBucket("programacion-a5156.appspot.com")
                 .build();
 
-        // Inicializar Firebase
         if (FirebaseApp.getApps().isEmpty()) {
             return FirebaseApp.initializeApp(options);
         }
